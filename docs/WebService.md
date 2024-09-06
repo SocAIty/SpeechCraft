@@ -37,9 +37,7 @@ You can configure some settings via environment variables:
 # Deployment, Runpod, Docker, file uploads and more
 
 For more settings and how to deploy the service check-out [FastTaskAPI](https://github.com/SocAIty/FastTaskAPI).
-
 For example it allows you to deploy the service with [Runpod](https://runpod.io) out of the box.
-Checkout the [DOCKERFILE](DOCKERFILE) for runpod.
 
 
 # Usage
