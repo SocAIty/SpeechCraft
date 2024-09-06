@@ -110,18 +110,11 @@ These files are quite big and can take a while to download.
 
 ![image of openapi server](docs/server_screenshot.png)
 
-
-From python:
-
-```python
-from speechcraft.server import start_server
-start_server(port=8009)
+Just run the server with the following command. 
+```bash
+python -m speechcraft.server
 ```
-
-With .bat file
-1. Start the server by running the provided .bat file "start_server.bat" 
-   2. or by using `python bark/server.py --port 8009` make sure the python PYTHONPATH is set to the root of this repository.
-2. To test the server, open `http://localhost:8009/docs` in your browser.
+To test the server, open `http://localhost:8009/docs` in your browser.
 
 Then make post requests to the server with your favorite tool or library.
 Here are some examples to inference with a python client.
@@ -131,7 +124,7 @@ If this fails, you can download the files manually or with the model_downloader.
 
 ### How to send requests
 
-NOTE: The Webservice is built with FastTaskAPI. In this regard, for each request it will create a task and return a job id
+NOTE: The Webservice is built with [FastTaskAPI](). In this regard, for each request it will create a task and return a job id
 
 
 We highly recommend to use [media-toolkit](https://github.com/SocAIty/media-toolkit) for file transmission. It will make your life much easier.
@@ -281,4 +274,4 @@ Don't copy and publish the voice of a person without their consent.
 
 Any help with maintaining and extending the package is welcome. Feel free to open an issue or a pull request.
 
-
+## PLEASE LEAVE A :star: TO SUPPORT THIS WORK

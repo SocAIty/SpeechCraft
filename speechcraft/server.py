@@ -1,7 +1,5 @@
-import argparse
 
 try:
-    import fastapi
     from fast_task_api import FastTaskAPI, JobProgress, AudioFile, MediaFile
 except ImportError:
     raise ImportError("Please install the full version of speechcraft with pip install speechcraft[server]"
@@ -9,23 +7,19 @@ except ImportError:
 
 import speechcraft as t2v
 from speechcraft.supp.model_downloader import download_all_models_init
-from speechcraft.settings import DEFAULT_PORT, PROVIDER
 
 import os
-
 from speechcraft.supp.utils import encode_path_safe
 
 app = FastTaskAPI(
-    provider=PROVIDER,
-    app=fastapi.FastAPI(
-        title="SpeechCraft by SocAIty.",
-        summary="Create audio from text, clone voices and use them. Convert voice2voice. "
-                "Generative text-to-audio Bark model.",
-        version="0.0.1",
-        contact={
-            "name": "SocAIty",
-            "url": "https://github.com/SocAIty/text2speech",
-        })
+    title="SpeechCraft by SocAIty.",
+    summary="Create audio from text, clone voices and use them. Convert voice2voice. "
+            "Generative text-to-audio Bark model.",
+    version="0.0.3",
+    contact={
+        "name": "SocAIty",
+        "url": "https://github.com/SocAIty/text2speech",
+    }
 )
 
 @app.task_endpoint(path="/text2voice", queue_size=10)
@@ -127,7 +121,7 @@ def voice2voice(
     return af
 
 
-def start_server(port: int = DEFAULT_PORT):
+def start_server(port: int = 8009):
     # first time load and install models
     download_all_models_init()
     app.start(port=port)
@@ -135,7 +129,4 @@ def start_server(port: int = DEFAULT_PORT):
 
 # start the server on provided port
 if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--port", type=int, default=DEFAULT_PORT)
-    args = arg_parser.parse_args()
-    start_server(port=args.port)
+    start_server()

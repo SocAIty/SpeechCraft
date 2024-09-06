@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SpeechCraft"
-version = "0.0.2"
+version = "0.0.3"
 description = "Create natural sounding audio from text, clone voices and use them. Convert voice to voice. Bark model."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -15,7 +15,7 @@ authors = [
 license = {file = "LICENSE"}
 
 dependencies = [
-    "media-toolkit[AudioFile]>=0.0.3",
+    "media-toolkit[AudioFile]>=0.1.1",
     "encodec",
     "fairseq",
     "boto3",
@@ -36,7 +36,7 @@ source = "https://github.com/SocAIty/SpeechCraft"
 [project.optional-dependencies]
 full = [
     "fastapi",
-    "fast-task-api>=0.0.3"
+    "fast-task-api>=0.0.7"
 ]
 
 [tool.setuptools.package-data]
