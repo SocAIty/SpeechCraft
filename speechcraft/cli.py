@@ -50,7 +50,6 @@ def cli():
     history_prompt: str = args.get("history_prompt")
     text_temp: float = args.get("text_temp")
     waveform_temp: float = args.get("waveform_temp")
-    silent: bool = args.get("silent")
     output_full: bool = args.get("output_full")
 
     try:
@@ -60,7 +59,6 @@ def cli():
             history_prompt=history_prompt,
             text_temp=text_temp,
             waveform_temp=waveform_temp,
-            silent=silent,
             output_full=output_full,
         )
         output_file_path = os.path.join(output_dir, output_filename)

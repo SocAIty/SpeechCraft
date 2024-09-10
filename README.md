@@ -1,6 +1,6 @@
   <h1 align="center" style="margin-top:-25px">SpeechCraft</h1>
 <p align="center">
-  <img align="center" src="docs/icon.png" height="200" />
+  <img align="center" src="docs/icon.png" height="300" />
 </p>
   <h3 align="center" style="margin-top:-10px">Text2Speech, Voice-Cloning and Voice2Voice conversion</h3> 
 
@@ -51,13 +51,10 @@ pip install speechcraft[full]
 # or from GitHub for the newest version.
 pip install git+https://github.com/SocAIty/speechcraft
 ```
-For windows you will also need to install fairseq from a different source. 
-`python 
-pip install fairseq@https://github.com/Sharrnah/fairseq/releases/download/v0.12.4/fairseq-0.12.4-cp310-cp310-win_amd64.whl
-`
 
 To use a GPU don't forget to install [pytorch GPU](https://pytorch.org/get-started/locally/) with your correct 
-[cuda](https://developer.nvidia.com/cuda-downloads) version.
+[cuda](https://developer.nvidia.com/cuda-downloads) version. For example:
+
 `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`
 
 
@@ -106,7 +103,7 @@ Note: The first time your are using speechcraft it will download the models.
 These files are quite big and can take a while to download.
 
 
-## Web Service
+# Web Service
 
 ![image of openapi server](docs/server_screenshot.png)
 

@@ -35,7 +35,7 @@ def get_hubert_manager_and_model(install_path: str = None):
     meta_encodec_model = load_codec_model(use_gpu=True)
 
     # Load the CustomTokenizer model
-    tokenizer = CustomTokenizer.load_from_checkpoint(tokenizer_model_path).to(device)  # Automatically uses the right layers
+    tokenizer = CustomTokenizer.load_from_checkpoint(tokenizer_model_path, map_location=device)
 
     return hubert_manager, hubert_model, meta_encodec_model, tokenizer
 

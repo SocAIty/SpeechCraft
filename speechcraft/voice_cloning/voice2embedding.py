@@ -12,13 +12,9 @@ def voice2embedding(audio_file: BytesIO | str, voice_name: str = "new_speaker"):
     Clones (creates and embedding of) the voice from the audio file and saves it to a .npz file.
     :param audio_file: path to the audio file or open file handle
     :param voice_name: name of the voice
-    Returns:
-
+    Returns: VoiceEmbedding
     """
-
-    print("cloning voice")
-    # load models
-    print("loading models")
+    print("voice2embedding load models")
     hubert_manager, hubert_model, model, tokenizer = get_hubert_manager_and_model()
 
     # Load and pre-process the audio waveform

@@ -1,8 +1,11 @@
+from typing import Union
+
+from speechcraft import VoiceEmbedding
 
 try:
     from fast_task_api import FastTaskAPI, JobProgress, AudioFile, MediaFile
 except ImportError:
-    raise ImportError("Please install the full version of speechcraft with pip install speechcraft[server]"
+    raise ImportError("Please install the full version of speechcraft with pip install speechcraft[full]"
                       " to use the server functionality.")
 
 import speechcraft as t2v
@@ -46,7 +49,7 @@ def text2voice(
     # remove any illegal characters from text
     text = encode_path_safe(text)
 
-    job.set_status(progress=0.2, message="Started text2voice.")
+    job.set_status(progress=0.01, message="Started text2voice.")
 
     generated_audio_file, sample_rate = t2v.text2voice(
         text=text,
@@ -57,7 +60,8 @@ def text2voice(
         coarse_temp=coarse_temp,
         coarse_top_k=coarse_top_k,
         coarse_top_p=coarse_top_p,
-        fine_temp=fine_temp
+        fine_temp=fine_temp,
+        progress_update_func=job.set_status
     )
 
     # make a recognizable filename
@@ -87,7 +91,7 @@ def voice2embedding(
 
     # write voice embedding to file
     if save:
-        job.set_status(progress=0.98, message=f"Saving embedding {voice_name} to library.")
+        job.set_status(progress=0.99, message=f"Saving embedding {voice_name} to library.")
         embedding.save_to_speaker_lib()
 
     mf = MediaFile(file_name=f"{voice_name}.npz").from_bytesio(embedding.to_bytes_io(), copy=False)
@@ -99,17 +103,22 @@ def voice2voice(
         job: JobProgress,
         audio_file: AudioFile,
         voice_name: str,
+        temp: float = 0.7
 ):
     """
     :param audio_file: the audio file as bytes 5-20s is good length
     :param voice_name: how the new voice / embedding is named
+    :param temp: generation temperature (1.0 more diverse, 0.0 more conservative)
     :return: the converted audio file as bytes
     """
+    job.set_status(progress=0.01, message=f"Started voice2voice {voice_name}.")
 
     # inference
-    audio_array, sample_rate = t2v.voice2voice(audio_file.to_bytes_io(), voice_name)
+    audio_array, sample_rate = t2v.voice2voice(
+        audio_file.to_bytes_io(), voice_name,
+        temp=temp, progress_update_func=job.set_status)
 
-    job.set_status(progress=0.1, message=f"Started voice2voice {voice_name}.")
+    job.set_status(progress=0.99, message=f"Converting to audio_file {voice_name}.")
 
     # convert to file
     af = AudioFile(file_name=f"voice2voice_{voice_name}.wav").from_np_array(

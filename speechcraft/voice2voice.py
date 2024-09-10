@@ -4,7 +4,6 @@ import torchaudio
 from encodec.utils import convert_audio
 import numpy as np
 
-
 import speechcraft.supp.utils
 from speechcraft.core.api import semantic_to_waveform
 from speechcraft.settings import MODELS_DIR
@@ -14,11 +13,18 @@ from speechcraft.supp.model_downloader import get_hubert_manager_and_model, make
 def voice2voice(
         audio_file: BytesIO | str,
         voice_name: str,
-    ) -> tuple[np.ndarray, int]:
+        temp: float = 0.7,
+        max_coarse_history: int = 300,
+        progress_update_func: callable = None
+) -> tuple[np.ndarray, int]:
     """
     Takes voice and intonation from speaker_embedding and applies it to swap_audio_filename
     :param audio_file: the audio file to swap the voice. Can be a path or a file handle
     :param voice_name: the voice name or the voice embedding to use for the swap
+    :param temp: generation temperature (1.0 more diverse, 0.0 more conservative)
+    :param max_coarse_history: history influence. Min 60 (faster), max 630 (more context)
+    :param progress_update_func: a callable to update the progress of the task.
+        Called like progress_update_function(x) with x in [0, 1]
     :return:
     """
     #
@@ -36,7 +42,7 @@ def voice2voice(
     wav = wav.to(device)
 
     # run inference
-    print("inferencing")
+    print("embedding audio with hubert_model")
     semantic_vectors = hubert_model.forward(wav, input_sample_hz=model.sample_rate)
     semantic_tokens = tokenizer.get_token(semantic_vectors)
 
@@ -44,12 +50,15 @@ def voice2voice(
     semantic_tokens = semantic_tokens.cpu().numpy()
 
     # convert voice2voice
+    print("inferencing")
     output_full = False
     out = semantic_to_waveform(
         semantic_tokens,
         history_prompt=voice_name,
-        temp=0.7,
-        output_full=output_full
+        temp=temp,
+        max_coarse_history=max_coarse_history,
+        output_full=output_full,
+        progress_update_func=progress_update_func
     )
     if output_full:
         full_generation, audio_arr = out
@@ -57,5 +66,3 @@ def voice2voice(
         audio_arr = out
 
     return audio_arr, model.sample_rate
-
-

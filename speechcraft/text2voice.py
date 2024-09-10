@@ -19,7 +19,8 @@ def text2voice_advanced(
         use_semantic_history_prompt=True,
         use_coarse_history_prompt=True,
         use_fine_history_prompt=True,
-        output_full=False
+        output_full=False,
+        progress_update_func: callable = None
 ):
     """
     :param text_prompt:
@@ -35,17 +36,30 @@ def text2voice_advanced(
     :param use_coarse_history_prompt:
     :param use_fine_history_prompt:
     :param output_full:
-    :return:
+    :param progress_update_func: a callable to update the progress of the task.
+    :return: audio array and sample rate
     """
 
     # generation with more control
+
+    # each generate block is 30% of progress thus we need to modify progress function
+    total_progress = 0.0
+    if progress_update_func is not None:
+        def progress_update_func_block(x):
+            progress_update_func(total_progress + round(x * 0.3, 2))
+    else:
+        progress_update_func_block = None  # no progress displayed or calculated
+
     x_semantic = generate_text_semantic(
         text_prompt,
         history_prompt=speaker_name if use_semantic_history_prompt else None,
         temp=semantic_temp,
         top_k=semantic_top_k,
         top_p=semantic_top_p,
+        progress_update_func=progress_update_func_block
     )
+
+    total_progress = 0.3
 
     x_coarse_gen = generate_coarse(
         x_semantic,
@@ -53,11 +67,16 @@ def text2voice_advanced(
         temp=coarse_temp,
         top_k=coarse_top_k,
         top_p=coarse_top_p,
+        progress_update_func=progress_update_func_block
     )
+
+    total_progress = 0.6
+
     x_fine_gen = generate_fine(
         x_coarse_gen,
         history_prompt=speaker_name if use_fine_history_prompt else None,
         temp=fine_temp,
+        progress_update_func=progress_update_func_block
     )
 
     if output_full:
@@ -79,7 +98,8 @@ def text2voice(
         coarse_temp=0.7,
         coarse_top_k=50,
         coarse_top_p=0.95,
-        fine_temp=0.5
+        fine_temp=0.5,
+        progress_update_func: callable = None
 ) -> tuple:
     """
     :param text:
@@ -91,7 +111,9 @@ def text2voice(
     :param coarse_top_k:
     :param coarse_top_p:
     :param fine_temp:
-    :return:
+     :param progress_update_func: a callable to update the progress of the task.
+        Called like progress_update_function(x) with x in [0, 1]
+    :return: audio array and sample rate
     """
 
     make_sure_models_are_downloaded(install_path=MODELS_DIR)
@@ -109,6 +131,7 @@ def text2voice(
         use_semantic_history_prompt=True,
         use_coarse_history_prompt=True,
         use_fine_history_prompt=True,
-        output_full=True
+        output_full=True,
+        progress_update_func=progress_update_func
     )
     return audio_array, SAMPLE_RATE

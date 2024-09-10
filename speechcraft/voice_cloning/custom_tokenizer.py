@@ -13,10 +13,15 @@ import torch
 from torch import nn, optim
 from torch.serialization import MAP_LOCATION
 
+from speechcraft.supp.utils import get_cpu_or_gpu
+
 
 class CustomTokenizer(nn.Module):
     def __init__(self, hidden_size=1024, input_size=768, output_size=10000, version=0):
         super(CustomTokenizer, self).__init__()
+
+        self.device = get_cpu_or_gpu()
+
         next_size = input_size
         if version == 0:
             self.lstm = nn.LSTM(input_size, hidden_size, 2, batch_first=True)
@@ -79,7 +84,7 @@ class CustomTokenizer(nn.Module):
 
         y_train_hot = torch.zeros(len(y_train), self.output_size)
         y_train_hot[range(len(y_train)), y_train] = 1
-        y_train_hot = y_train_hot.to('cuda')
+        y_train_hot = y_train_hot.to(self.device)
 
         # Calculate the loss
         loss = lossfunc(y_pred, y_train_hot)
@@ -116,7 +121,8 @@ class CustomTokenizer(nn.Module):
             model = CustomTokenizer()
         else:
             model = CustomTokenizer(data_from_model.hidden_size, data_from_model.input_size, data_from_model.output_size, data_from_model.version)
-        model.load_state_dict(torch.load(path, map_location=map_location))
+
+        model.load_state_dict(torch.load(path, map_location=torch.device(map_location)))
         if map_location:
             model = model.to(map_location)
         return model
@@ -153,12 +159,14 @@ class Data:
 def auto_train(data_path, save_path='model.pth', load_model: str | None = None, save_epochs=1):
     data_x, data_y = {}, {}
 
+    device = get_cpu_or_gpu()
+
     if load_model and os.path.isfile(load_model):
         print('Loading model from', load_model)
-        model_training = CustomTokenizer.load_from_checkpoint(load_model, 'cuda')
+        model_training = CustomTokenizer.load_from_checkpoint(load_model, device)
     else:
         print('Creating new model.')
-        model_training = CustomTokenizer(version=1).to('cuda')
+        model_training = CustomTokenizer(version=1).to(device)
     save_path = os.path.join(data_path, save_path)
     base_save_path = '.'.join(save_path.split('.')[:-1])
 
@@ -181,6 +189,8 @@ def auto_train(data_path, save_path='model.pth', load_model: str | None = None, 
     model_training.prepare_training()
     epoch = 1
 
+
+
     while 1:
         for i in range(save_epochs):
             j = 0
@@ -190,7 +200,7 @@ def auto_train(data_path, save_path='model.pth', load_model: str | None = None, 
                 if x is None or y is None:
                     print(f'The training data does not match. key={i}')
                     continue
-                model_training.train_step(torch.tensor(x).to('cuda'), torch.tensor(y).to('cuda'), j % 50 == 0)  # Print loss every 50 steps
+                model_training.train_step(torch.tensor(x).to(device), torch.tensor(y).to(device), j % 50 == 0)  # Print loss every 50 steps
                 j += 1
         save_p = save_path
         save_p_2 = f'{base_save_path}_epoch_{epoch}.pth'
