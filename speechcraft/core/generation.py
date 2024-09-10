@@ -506,7 +506,7 @@ def _get_progress_update_func(progress_update_func: callable = None):
     p = tqdm.tqdm(total=100)
     # wrap tqdm to make compatible with any func
     def upn(n):
-        p.n = round(n, 2)
+        p.n = round(n*100, 2)
         p.refresh()
     return upn
 
