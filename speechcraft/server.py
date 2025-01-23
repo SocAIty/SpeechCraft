@@ -1,6 +1,3 @@
-from typing import Union
-
-from speechcraft import VoiceEmbedding
 
 try:
     from fast_task_api import FastTaskAPI, JobProgress, AudioFile, MediaFile
@@ -18,10 +15,10 @@ app = FastTaskAPI(
     title="SpeechCraft by SocAIty.",
     summary="Create audio from text, clone voices and use them. Convert voice2voice. "
             "Generative text-to-audio Bark model.",
-    version="0.0.3",
+    version="0.0.4",
     contact={
         "name": "SocAIty",
-        "url": "https://github.com/SocAIty/text2speech",
+        "url": "https://github.com/SocAIty/speechcraft",
     }
 )
 
