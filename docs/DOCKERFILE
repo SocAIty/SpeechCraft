@@ -9,6 +9,9 @@ WORKDIR /
 # ffmpeg needed for mediatoolkit video
 RUN apt-get update && apt-get install -y ffmpeg
 
+# using correct pypi version. 24 is max with version for fairseq until february 2025
+RUN python -m pip install pip==24.0
+
 # Install Python dependencies (Worker Template)
 # added runpod directly in dependencies
 # added other libs before which keep failing in requirements file for unknown reasons.

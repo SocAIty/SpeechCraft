@@ -67,7 +67,7 @@ To use a GPU don't forget to install [pytorch GPU](https://pytorch.org/get-start
 
 
 # Usage
-We provide three ways to use the face swapping functionality.
+We provide three ways to use the text-to-speech functionality.
 1. [Direct module import and inference](#Inference-from-script) 
 2. [By deploying and calling the web service](#Web-Service)
 3. As part of the [socaity SDK](https://github.com/SocAIty/socaity).  # coming soon
