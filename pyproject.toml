@@ -15,7 +15,7 @@ authors = [
 license = {file = "LICENSE"}
 
 dependencies = [
-    "media-toolkit[AudioFile]>=0.1.3",
+    "media-toolkit[AudioFile]>=0.1.5",
     "encodec",
     "fairseq",
     "boto3",

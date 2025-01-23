@@ -39,7 +39,7 @@ def voice2voice(
             nonlocal total_progress
             prev_progress = total_progress
             curr_progress = total_progress + round(x, 2)
-            if prev_progress != curr_progress:
+            if prev_progress < curr_progress:
                 total_progress = curr_progress
                 progress_update_func(total_progress + round(x, 2))
     else:
@@ -54,14 +54,14 @@ def voice2voice(
     device = speechcraft.supp.utils.get_cpu_or_gpu()
     wav = wav.to(device)
 
-    progress_update_func_block(0.05)  # 5 % for loading the audio
+    progress_update_func_block(1)  # 1 % for loading the audio
 
     # run inference
     print("embedding audio with hubert_model")
     semantic_vectors = hubert_model.forward(wav, input_sample_hz=model.sample_rate)
     semantic_tokens = tokenizer.get_token(semantic_vectors)
 
-    progress_update_func_block(0.08)  # 8 % for embedding the audio
+    progress_update_func_block(2)  # 2 % for embedding the audio
 
     # move semantic tokens to cpu
     semantic_tokens = semantic_tokens.cpu().numpy()
