@@ -1,0 +1,38 @@
+FROM runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
+
+SHELL ["/bin/bash", "-c"]
+# create the folder for face2face
+# RUN mkdir -p /face2face/logs
+WORKDIR /
+
+# Install dependencies
+# ffmpeg needed for mediatoolkit video
+RUN apt-get update && apt-get install -y ffmpeg
+
+# Install Python dependencies (Worker Template)
+# added runpod directly in dependencies
+# added other libs before which keep failing in requirements file for unknown reasons.
+# note that fairseq need to be installed differently in windows and linux
+RUN pip install runpod==1.7.7 && \
+    pip install fairseq && \
+	pip install speechcraft[full]==0.0.4
+
+# Configure where the models and the output is stored
+ENV ROOT_DIR="/runpod-volume"
+ENV MODELS_DIR="/runpod-volume/speechcraft/models/"
+ENV EMBEDDINGS_DIR="/runpod-volume/speechcraft/embeddings"
+
+# Configure that fast-task-api shall be started in "runpod" mode and run "serverless"
+
+ENV FTAPI_BACKEND="runpod"
+ENV FTAPI_DEPLOYMENT="serverless"
+
+ARG port=8080
+ENV FTAPI_PORT=$port
+# allows the docker container to use the port
+EXPOSE $port 
+# allows any IP from the computer to connect to the host
+ENV FTAPI_HOST="0.0.0.0"
+
+# Start the fast-task-api server which is instantiated in the module -m speechcraft.server
+CMD [ "python", "-m", "speechcraft.server"]

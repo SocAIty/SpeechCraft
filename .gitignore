@@ -6,6 +6,7 @@ output/
 models/
 speechcraft/models/
 speechcraft/output/
+test/output/
 # added this one because new speakers are saved here
 # speechcraft/assets/
 
