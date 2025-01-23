@@ -32,6 +32,19 @@ def voice2voice(
     # Load the HuBERT model
     hubert_manager, hubert_model, model, tokenizer = get_hubert_manager_and_model()
 
+    # create a better progress function
+    total_progress = 0.0
+    if progress_update_func is not None:
+        def progress_update_func_block(x):
+            nonlocal total_progress
+            prev_progress = total_progress
+            curr_progress = total_progress + round(x, 2)
+            if prev_progress != curr_progress:
+                total_progress = curr_progress
+                progress_update_func(total_progress + round(x, 2))
+    else:
+        progress_update_func_block = None
+
     # Load and pre-process the audio waveform
     wav, sr = torchaudio.load(audio_file)
     if wav.shape[0] == 2:  # Stereo to mono if needed
@@ -41,10 +54,14 @@ def voice2voice(
     device = speechcraft.supp.utils.get_cpu_or_gpu()
     wav = wav.to(device)
 
+    progress_update_func_block(0.05)  # 5 % for loading the audio
+
     # run inference
     print("embedding audio with hubert_model")
     semantic_vectors = hubert_model.forward(wav, input_sample_hz=model.sample_rate)
     semantic_tokens = tokenizer.get_token(semantic_vectors)
+
+    progress_update_func_block(0.08)  # 8 % for embedding the audio
 
     # move semantic tokens to cpu
     semantic_tokens = semantic_tokens.cpu().numpy()
@@ -58,7 +75,7 @@ def voice2voice(
         temp=temp,
         max_coarse_history=max_coarse_history,
         output_full=output_full,
-        progress_update_func=progress_update_func
+        progress_update_func=progress_update_func_block
     )
     if output_full:
         full_generation, audio_arr = out

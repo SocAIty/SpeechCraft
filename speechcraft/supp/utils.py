@@ -15,7 +15,7 @@ def encode_path_safe(filename: str, allow_unicode=False):
     else:
         filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
     filename = re.sub(r'[^\w\s-]', '', filename.lower())
-    return re.sub(r'[-\s]+', '-', filename).strip('-_')
+    return re.sub(r'[-\s]+', '', filename).strip('-_')
 
 
 def get_cpu_or_gpu() -> str:

@@ -44,7 +44,7 @@ def text2voice(
 
     # validate parameters
     # remove any illegal characters from text
-    text = encode_path_safe(text)
+    # text = encode_path_safe(text)
 
     job.set_status(progress=0.01, message="Started text2voice.")
 

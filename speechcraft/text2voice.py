@@ -46,7 +46,12 @@ def text2voice_advanced(
     total_progress = 0.0
     if progress_update_func is not None:
         def progress_update_func_block(x):
-            progress_update_func(total_progress + round(x * 0.3, 2))
+            nonlocal total_progress
+            prev_progress = total_progress
+            curr_progress = total_progress + round(x * 0.3, 2)
+            if prev_progress != curr_progress:
+                total_progress = curr_progress
+                progress_update_func(total_progress + round(x * 0.3, 2))
     else:
         progress_update_func_block = None  # no progress displayed or calculated
 
