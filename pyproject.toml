@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SpeechCraft"
-version = "0.0.4"
+version = "0.0.5"
 description = "Create natural sounding audio from text, clone voices and use them. Convert voice to voice. Bark model."
 readme = "README.md"
 requires-python = ">=3.8"
