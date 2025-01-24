@@ -3,6 +3,8 @@ import os
 ROOT_DIR = os.getenv('ROOT_DIR', os.path.dirname(os.path.abspath(__file__)))
 MODELS_DIR = os.getenv("MODELS_DIR", os.path.join(ROOT_DIR, "models"))
 EMBEDDINGS_DIR = os.getenv("EMBEDDINGS_DIR", os.path.join(ROOT_DIR, "assets", "prompts"))
+ALLOW_EMBEDDING_SAVE_ON_SERVER = os.getenv("ALLOW_EMBEDDING_SAVE_ON_SERVER", True) in ('true', '1', 't')
+
 # Defining the getters and setters like this, allows a change of the env variable at runtime for other modules
 # This is useful for the server, where the user can change the settings without restarting the server
 # Required in cloud environments for example when a volume is mounted after the server is started

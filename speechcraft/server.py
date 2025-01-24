@@ -1,3 +1,4 @@
+from speechcraft.settings import ALLOW_EMBEDDING_SAVE_ON_SERVER
 
 try:
     from fast_task_api import FastTaskAPI, JobProgress, AudioFile, MediaFile
@@ -44,8 +45,6 @@ def text2voice(
 
     # validate parameters
     # remove any illegal characters from text
-    # text = encode_path_safe(text)
-
     job.set_status(progress=0.01, message="Started text2voice.")
 
     generated_audio_file, sample_rate = t2v.text2voice(
@@ -63,9 +62,11 @@ def text2voice(
 
     # make a recognizable filename
     filename = text[:15] if len(text) > 15 else text
+    filename = encode_path_safe(filename)
     filename = f"{filename}_{os.path.basename(voice)}.wav"
     af = AudioFile(file_name=filename).from_np_array(np_array=generated_audio_file, sr=sample_rate, file_type="wav")
     return af
+
 
 
 @app.task_endpoint("/voice2embedding")
@@ -73,12 +74,13 @@ def voice2embedding(
         job: JobProgress,
         audio_file: AudioFile,
         voice_name: str = "new_speaker",
-        save: bool = True
+        save: bool = ALLOW_EMBEDDING_SAVE_ON_SERVER
 ):
     """
     :param audio_file: the audio file as bytes 5-20s is good length
     :param voice_name: how the new voice / embedding is named
-    :param save: if the embedding should be saved in the voice dir for reusage
+    :param save: if the embedding should be saved in the voice dir for reusage.
+        Note: depending on the server settings this might not be allowed
     :return: the voice embedding as bytes
     """
     # create embedding vector
@@ -87,7 +89,7 @@ def voice2embedding(
     embedding = t2v.voice2embedding(audio_file=bytesio, voice_name=voice_name)
 
     # write voice embedding to file
-    if save:
+    if save and ALLOW_EMBEDDING_SAVE_ON_SERVER:
         job.set_status(progress=0.99, message=f"Saving embedding {voice_name} to library.")
         embedding.save_to_speaker_lib()
 

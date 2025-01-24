@@ -57,6 +57,10 @@ To use a GPU don't forget to install [pytorch GPU](https://pytorch.org/get-start
 
 `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`
 
+Requirements:
+- python >= 3.5 <= 3.10
+- 
+
 
 ### Or clone and work with the repository.
 1. Clone the repository.
