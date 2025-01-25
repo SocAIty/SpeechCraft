@@ -20,7 +20,7 @@ app = FastTaskAPI(
     title="SpeechCraft by SocAIty.",
     summary="Create audio from text, clone voices and use them. Convert voice2voice. "
             "Generative text-to-audio Bark model.",
-    version="0.0.4",
+    version="0.0.5",
     contact={
         "name": "SocAIty",
         "url": "https://github.com/SocAIty/speechcraft",
