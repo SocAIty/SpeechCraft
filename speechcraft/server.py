@@ -1,3 +1,7 @@
+import uuid
+
+from speechcraft import VoiceEmbedding
+
 from speechcraft.settings import ALLOW_EMBEDDING_SAVE_ON_SERVER
 
 try:
@@ -35,7 +39,7 @@ def text2voice(
         coarse_top_k: int = 50,
         coarse_top_p: float =0.95,
         fine_temp: float = 0.5
-    ):
+    ) -> AudioFile:
     """
     :param text: the text to be converted
     :param voice: the name of the voice to be used. Uses the pretrained voices which are stored in models/speakers folder.
@@ -68,6 +72,44 @@ def text2voice(
     return af
 
 
+@app.task_endpoint("/text2voice_with_embedding")
+def text2voice_with_embedding(
+        job: JobProgress,
+        text: str,
+        voice: MediaFile,
+        semantic_temp: float = 0.7,
+        semantic_top_k: int = 50,
+        semantic_top_p: float = 0.95,
+        coarse_temp: float = 0.7,
+        coarse_top_k: int = 50,
+        coarse_top_p: float = 0.95,
+        fine_temp: float = 0.5) -> AudioFile:
+
+    voice_name = getattr(voice, "file_name", "embedding")
+    voice_name = f"{voice_name}_{uuid.uuid4()}"
+
+    ve = VoiceEmbedding.load_from_bytes_io(voice.to_bytes_io(), speaker_name=voice_name)
+    job.set_status(progress=0.01, message="Started text2voice.")
+
+    generated_audio_file, sample_rate = t2v.text2voice(
+        text=text,
+        voice=ve,
+        semantic_temp=semantic_temp,
+        semantic_top_k=semantic_top_k,
+        semantic_top_p=semantic_top_p,
+        coarse_temp=coarse_temp,
+        coarse_top_k=coarse_top_k,
+        coarse_top_p=coarse_top_p,
+        fine_temp=fine_temp,
+        progress_update_func=job.set_status
+    )
+
+    # make a recognizable filename
+    filename = text[:15] if len(text) > 15 else text
+    filename = encode_path_safe(filename)
+    filename = f"{filename}_{os.path.basename(voice)}.wav"
+    af = AudioFile(file_name=filename).from_np_array(np_array=generated_audio_file, sr=sample_rate, file_type="wav")
+    return af
 
 @app.task_endpoint("/voice2embedding")
 def voice2embedding(
@@ -75,7 +117,7 @@ def voice2embedding(
         audio_file: AudioFile,
         voice_name: str = "new_speaker",
         save: bool = ALLOW_EMBEDDING_SAVE_ON_SERVER
-):
+) -> MediaFile:
     """
     :param audio_file: the audio file as bytes 5-20s is good length
     :param voice_name: how the new voice / embedding is named

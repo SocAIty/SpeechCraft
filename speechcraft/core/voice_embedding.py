@@ -1,5 +1,7 @@
 import os
+import uuid
 from io import BytesIO
+from typing import Union
 
 import numpy as np
 
@@ -42,7 +44,7 @@ class VoiceEmbedding:
     @staticmethod
     def load(path_or_speaker_name: str):
         """
-        Load a VoiceEmbedding from a file path or speaker name.
+        Load a VoiceEmbedding from a file path or speaker nam.
         """
         if not os.path.exists(path_or_speaker_name):
             # add .npz extension
@@ -52,6 +54,7 @@ class VoiceEmbedding:
             # add default speaker dir
             path_or_speaker_name = os.path.join(EMBEDDINGS_DIR, path_or_speaker_name)
 
+
         if not os.path.exists(path_or_speaker_name):
             raise FileNotFoundError(f"Speaker embedding {path_or_speaker_name} not found")
 
@@ -59,9 +62,20 @@ class VoiceEmbedding:
         with np.load(path_or_speaker_name) as data:
             codes = data['fine_prompt']
             semantic_tokens = data['semantic_prompt']
-        speaker_name = path_or_speaker_name.split("/")[-1].split(".")[0]
 
         # return new VoiceEmbedding
+        speaker_name = path_or_speaker_name.split("/")[-1].split(".")[0]
+        return VoiceEmbedding(name=speaker_name, codes=codes, semantic_tokens=semantic_tokens)
+
+    @staticmethod
+    def load_from_bytes_io(bytes_io: BytesIO, speaker_name: str = None):
+        with np.load(bytes_io) as data:
+            codes = data['fine_prompt']
+            semantic_tokens = data['semantic_prompt']
+
+        if speaker_name is None or len(speaker_name) == 0:
+            speaker_name = f"embedding_{uuid.uuid4()}"
+
         return VoiceEmbedding(name=speaker_name, codes=codes, semantic_tokens=semantic_tokens)
 
     @staticmethod
