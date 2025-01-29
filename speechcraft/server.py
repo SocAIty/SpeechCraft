@@ -88,7 +88,7 @@ def text2voice_with_embedding(
     voice_name = getattr(voice, "file_name", "embedding")
     voice_name = f"{voice_name}_{uuid.uuid4()}"
 
-    ve = VoiceEmbedding.load_from_bytes_io(voice.to_bytes_io(), speaker_name=voice_name)
+    ve = VoiceEmbedding.load(voice.to_bytes_io(), speaker_name=voice_name)
     job.set_status(progress=0.01, message="Started text2voice.")
 
     generated_audio_file, sample_rate = t2v.text2voice(
@@ -117,7 +117,7 @@ def voice2embedding(
         audio_file: AudioFile,
         voice_name: str = "new_speaker",
         save: bool = ALLOW_EMBEDDING_SAVE_ON_SERVER
-) -> MediaFile:
+):
     """
     :param audio_file: the audio file as bytes 5-20s is good length
     :param voice_name: how the new voice / embedding is named

@@ -4,7 +4,7 @@ import torchaudio
 from encodec.utils import convert_audio
 import numpy as np
 
-import speechcraft.supp.utils
+import speechcraft.supp.utils as utils
 from speechcraft.core.api import semantic_to_waveform
 from speechcraft.settings import MODELS_DIR
 from speechcraft.supp.model_downloader import get_hubert_manager_and_model, make_sure_models_are_downloaded
@@ -33,17 +33,10 @@ def voice2voice(
     hubert_manager, hubert_model, model, tokenizer = get_hubert_manager_and_model()
 
     # create a better progress function
-    total_progress = 0.0
     if progress_update_func is not None:
-        def progress_update_func_block(x):
-            nonlocal total_progress
-            prev_progress = total_progress
-            curr_progress = total_progress + round(x, 2)
-            if prev_progress < curr_progress:
-                total_progress = curr_progress
-                progress_update_func(total_progress + round(x, 2))
-    else:
-        progress_update_func_block = None
+        progress_update_func = utils.create_progress_tracker(progress_update_func, steps=[
+            [("loading", 10), ("embedding", 90)]
+        ])
 
     # Load and pre-process the audio waveform
     wav, sr = torchaudio.load(audio_file)
@@ -51,20 +44,22 @@ def voice2voice(
         wav = wav.mean(0, keepdim=True)
 
     wav = convert_audio(wav, sr, model.sample_rate, model.channels)
-    device = speechcraft.supp.utils.get_cpu_or_gpu()
+    device = utils.get_cpu_or_gpu()
     wav = wav.to(device)
 
-    progress_update_func_block(1)  # 1 % for loading the audio
+    if progress_update_func is not None:
+        progress_update_func(50)  # 1 % for loading the audio
 
     # run inference
     print("embedding audio with hubert_model")
     semantic_vectors = hubert_model.forward(wav, input_sample_hz=model.sample_rate)
     semantic_tokens = tokenizer.get_token(semantic_vectors)
 
-    progress_update_func_block(2)  # 2 % for embedding the audio
-
     # move semantic tokens to cpu
     semantic_tokens = semantic_tokens.cpu().numpy()
+
+    if progress_update_func is not None:
+        progress_update_func(100)  # Will start the next 'step' in the progress tracker
 
     # convert voice2voice
     print("inferencing")
@@ -75,7 +70,7 @@ def voice2voice(
         temp=temp,
         max_coarse_history=max_coarse_history,
         output_full=output_full,
-        progress_update_func=progress_update_func_block
+        progress_update_func=progress_update_func
     )
     if output_full:
         full_generation, audio_arr = out

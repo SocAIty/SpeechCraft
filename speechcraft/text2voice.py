@@ -4,6 +4,7 @@ from speechcraft.core.voice_embedding import VoiceEmbedding
 from speechcraft.core.generation import SAMPLE_RATE, codec_decode, generate_coarse, generate_fine, generate_text_semantic
 from speechcraft.supp.model_downloader import make_sure_models_are_downloaded
 from speechcraft.settings import MODELS_DIR
+from speechcraft.supp.utils import create_progress_tracker
 
 
 def text2voice_advanced(
@@ -41,19 +42,14 @@ def text2voice_advanced(
     """
 
     # generation with more control
-
     # each generate block is 30% of progress thus we need to modify progress function
-    total_progress = 0.0
     if progress_update_func is not None:
-        def progress_update_func_block(x):
-            nonlocal total_progress
-            prev_progress = total_progress
-            curr_progress = total_progress + round(x * 0.3, 2)
-            if prev_progress != curr_progress:
-                total_progress = curr_progress
-                progress_update_func(total_progress + round(x * 0.3, 2))
-    else:
-        progress_update_func_block = None  # no progress displayed or calculated
+        progress_update_func = create_progress_tracker(progress_update_func, steps=[
+            ("semantic", 34),
+            ("coarse", 33),
+            ("fine", 33)
+        ])
+
 
     x_semantic = generate_text_semantic(
         text_prompt,
@@ -61,10 +57,8 @@ def text2voice_advanced(
         temp=semantic_temp,
         top_k=semantic_top_k,
         top_p=semantic_top_p,
-        progress_update_func=progress_update_func_block
+        progress_update_func=progress_update_func
     )
-
-    total_progress = 0.3
 
     x_coarse_gen = generate_coarse(
         x_semantic,
@@ -72,16 +66,14 @@ def text2voice_advanced(
         temp=coarse_temp,
         top_k=coarse_top_k,
         top_p=coarse_top_p,
-        progress_update_func=progress_update_func_block
+        progress_update_func=progress_update_func
     )
-
-    total_progress = 0.6
 
     x_fine_gen = generate_fine(
         x_coarse_gen,
         history_prompt=speaker_name if use_fine_history_prompt else None,
         temp=fine_temp,
-        progress_update_func=progress_update_func_block
+        progress_update_func=progress_update_func
     )
 
     if output_full:

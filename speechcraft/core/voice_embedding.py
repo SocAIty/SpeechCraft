@@ -1,11 +1,11 @@
 import os
 import uuid
 from io import BytesIO
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 
-from speechcraft.settings import EMBEDDINGS_DIR
+from speechcraft.settings import EMBEDDINGS_DIR, DEFAULT_EMBEDDINGS_DIR
 
 
 class VoiceEmbedding:
@@ -21,7 +21,8 @@ class VoiceEmbedding:
         self.semantic_prompt = semantic_tokens
 
     def save_to_speaker_lib(self):
-        self.save(EMBEDDINGS_DIR)
+        sp = getattr(EMBEDDINGS_DIR, DEFAULT_EMBEDDINGS_DIR, "")
+        self.save(sp)
         return self
 
     def save(self, folder: str):
@@ -42,45 +43,111 @@ class VoiceEmbedding:
         return f
 
     @staticmethod
-    def load(path_or_speaker_name: str):
+    def _load_embedding_data(source: Union[str, BytesIO]) -> tuple:
         """
-        Load a VoiceEmbedding from a file path or speaker nam.
+        Internal method to load embedding data from a file or BytesIO object.
+
+        Args:
+            source: File path or BytesIO object containing the embedding data
+
+        Returns:
+            tuple: (codes, semantic_tokens)
+
+        Raises:
+            ValueError: If the embedding data is invalid or cannot be loaded
         """
-        if not os.path.exists(path_or_speaker_name):
-            # add .npz extension
-            if not path_or_speaker_name.endswith(".npz"):
-                path_or_speaker_name = path_or_speaker_name + ".npz"
-
-            # add default speaker dir
-            path_or_speaker_name = os.path.join(EMBEDDINGS_DIR, path_or_speaker_name)
-
-
-        if not os.path.exists(path_or_speaker_name):
-            raise FileNotFoundError(f"Speaker embedding {path_or_speaker_name} not found")
-
-        # Load data
-        with np.load(path_or_speaker_name) as data:
-            codes = data['fine_prompt']
-            semantic_tokens = data['semantic_prompt']
-
-        # return new VoiceEmbedding
-        speaker_name = path_or_speaker_name.split("/")[-1].split(".")[0]
-        return VoiceEmbedding(name=speaker_name, codes=codes, semantic_tokens=semantic_tokens)
+        try:
+            with np.load(source) as data:
+                return data['fine_prompt'], data['semantic_prompt']
+        except (KeyError, ValueError) as e:
+            raise ValueError(f"Invalid embedding format. Error: {str(e)}")
+        except Exception as e:
+            raise ValueError(f"Failed to load embedding. Error: {str(e)}")
 
     @staticmethod
-    def load_from_bytes_io(bytes_io: BytesIO, speaker_name: str = None):
-        with np.load(bytes_io) as data:
-            codes = data['fine_prompt']
-            semantic_tokens = data['semantic_prompt']
+    def _find_embedding_file(path_or_name: str) -> Optional[str]:
+        """
+        Search for embedding file in multiple locations.
 
-        if speaker_name is None or len(speaker_name) == 0:
-            speaker_name = f"embedding_{uuid.uuid4()}"
+        Args:
+            path_or_name: File path or speaker name
 
-        return VoiceEmbedding(name=speaker_name, codes=codes, semantic_tokens=semantic_tokens)
+        Returns:
+            str or None: Found file path or None if not found
+        """
+        # Try direct path first
+        if os.path.isfile(path_or_name):
+            return path_or_name
 
-    @staticmethod
-    def load_from_speaker_lib(speaker_name: str):
-        return VoiceEmbedding.load(os.path.join(EMBEDDINGS_DIR, f"{speaker_name}.npz"))
+        filename = os.path.basename(path_or_name)
+        search_paths = []
+
+        # Add EMBEDDINGS_DIR to search paths if it exists and is valid
+        if EMBEDDINGS_DIR and os.path.isdir(EMBEDDINGS_DIR):
+            search_paths.append(EMBEDDINGS_DIR)
+
+        # Always include DEFAULT_EMBEDDINGS_DIR
+        search_paths.append(DEFAULT_EMBEDDINGS_DIR)
+
+        # Search in all paths
+        for directory in search_paths:
+            filepath = os.path.join(directory, filename)
+            if os.path.isfile(filepath):
+                return filepath
+
+        return None
+
+    @classmethod
+    def load(cls, source: Union[str, BytesIO], speaker_name: Optional[str] = None) -> "VoiceEmbedding":
+        """
+        Unified method to load a VoiceEmbedding from various sources.
+
+        Args:
+            source: Can be one of:
+                - Full path to .npz file (absolute or relative)
+                - Speaker name
+                - BytesIO object containing embedding data
+            speaker_name: Optional speaker name. If not provided:
+                - For file paths: extracted from filename
+                - For BytesIO: generated using UUID
+
+        Returns:
+            VoiceEmbedding: Loaded voice embedding object
+
+        Raises:
+            FileNotFoundError: If embedding file cannot be found
+            ValueError: If embedding data has invalid format
+        """
+        if isinstance(source, BytesIO):
+            # Handle BytesIO input
+            codes, semantic_tokens = cls._load_embedding_data(source)
+            final_speaker_name = speaker_name or f"embedding_{uuid.uuid4()}"
+        else:
+            # Handle string input (file path or speaker name)
+            # Add .npz extension if not present
+            source = f"{source}.npz" if not source.endswith('.npz') else source
+            filepath = cls._find_embedding_file(source)
+
+            if not filepath:
+                searched_paths = [
+                    source,
+                    os.path.join(EMBEDDINGS_DIR, os.path.basename(source)) if EMBEDDINGS_DIR else None,
+                    os.path.join(DEFAULT_EMBEDDINGS_DIR, os.path.basename(source))
+                ]
+                searched_paths = [p for p in searched_paths if p]  # Remove None values
+                raise FileNotFoundError(
+                    f"Voice embedding not found. Searched in:\n  - " +
+                    "\n  - ".join(searched_paths)
+                )
+
+            codes, semantic_tokens = cls._load_embedding_data(filepath)
+            final_speaker_name = speaker_name or os.path.splitext(os.path.basename(filepath))[0]
+
+        return cls(
+            name=final_speaker_name,
+            codes=codes,
+            semantic_tokens=semantic_tokens
+        )
 
     def __getitem__(self, key):
         """

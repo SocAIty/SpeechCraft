@@ -2,7 +2,14 @@ import os
 
 ROOT_DIR = os.getenv('ROOT_DIR', os.path.dirname(os.path.abspath(__file__)))
 MODELS_DIR = os.getenv("MODELS_DIR", os.path.join(ROOT_DIR, "models"))
-EMBEDDINGS_DIR = os.getenv("EMBEDDINGS_DIR", os.path.join(ROOT_DIR, "assets", "prompts"))
+
+# If an embedding is loaded from file it will act in the following way:
+# 1. Check if embedding can be found in the EMBEDDINGS_DIR
+# 2. If not found, check if it can be found in the DEFAULT_EMBEDDINGS_DIR (is default speaker)
+# For saving the same (if embeddings_dir is set save there, if not save in default)
+
+DEFAULT_EMBEDDINGS_DIR = os.path.join(ROOT_DIR, "assets", "prompts")
+EMBEDDINGS_DIR = os.getenv("EMBEDDINGS_DIR", None)
 ALLOW_EMBEDDING_SAVE_ON_SERVER = os.getenv("ALLOW_EMBEDDING_SAVE_ON_SERVER", True) in ('true', '1', 't')
 
 # Defining the getters and setters like this, allows a change of the env variable at runtime for other modules

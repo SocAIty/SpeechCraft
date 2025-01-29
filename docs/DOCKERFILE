@@ -21,7 +21,6 @@ RUN pip install runpod==1.7.7 && \
 	pip install speechcraft[full]
 
 # Configure where the models and the output is stored
-ENV ROOT_DIR="/runpod-volume"
 ENV MODELS_DIR="/runpod-volume/speechcraft/models/"
 ENV EMBEDDINGS_DIR="/runpod-volume/speechcraft/embeddings"
 
