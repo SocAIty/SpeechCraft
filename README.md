@@ -40,9 +40,19 @@ https://github.com/SocAIty/SpeechCraft/assets/7961324/71a039c7-e665-4576-91c7-72
 
 # Installation
 
-The code runs fine on Windows and Linux. 
+### Use the Socaity SDK
 
-### With PIP
+Speechcraft is available on [socaity.ai](https://socaity.ai) as part of the [socaity sdk](https://github.com/SocAIty/socaity)
+Spare yourself the installation and use the sdk directly. NO GPU required.
+
+```python 
+from socaity import SpeechCraft
+audio = SpeechCraft().text2voice("I love society [laughs]! [happy] What a day to make voice overs with artificial intelligence.").get_result()
+```
+
+
+### Or install locally with PIP
+
 ```bash
 # from PyPi (without web API)
 pip install speechcraft
@@ -59,7 +69,7 @@ To use a GPU don't forget to install [pytorch GPU](https://pytorch.org/get-start
 
 Requirements:
 - python >= 3.5 <= 3.10
-- 
+- Windows / Linux
 
 
 ### Or clone and work with the repository.
