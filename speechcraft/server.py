@@ -20,16 +20,16 @@ app = FastTaskAPI(
     title="SpeechCraft by SocAIty.",
     summary="Create audio from text, clone voices and use them. Convert voice2voice. "
             "Generative text-to-audio Bark model.",
-    version="0.0.5",
+    version="0.0.9",
     contact={
         "name": "SocAIty",
         "url": "https://github.com/SocAIty/speechcraft",
     }
 )
 
-@app.task_endpoint(path="/text2voice", queue_size=10)
+@app.task_endpoint(path="/text2voice")
 def text2voice(
-        job: JobProgress,
+        job_progress: JobProgress,
         text: str,
         voice: str = "en_speaker_3",
         semantic_temp: float = 0.7,
@@ -39,7 +39,7 @@ def text2voice(
         coarse_top_k: int = 50,
         coarse_top_p: float =0.95,
         fine_temp: float = 0.5
-    ) -> AudioFile:
+    ):
     """
     :param text: the text to be converted
     :param voice: the name of the voice to be used. Uses the pretrained voices which are stored in models/speakers folder.
@@ -49,7 +49,7 @@ def text2voice(
 
     # validate parameters
     # remove any illegal characters from text
-    job.set_status(progress=0.01, message="Started text2voice.")
+    job_progress.set_status(progress=0.01, message="Started text2voice.")
 
     generated_audio_file, sample_rate = t2v.text2voice(
         text=text,
@@ -61,7 +61,7 @@ def text2voice(
         coarse_top_k=coarse_top_k,
         coarse_top_p=coarse_top_p,
         fine_temp=fine_temp,
-        progress_update_func=job.set_status
+        progress_update_func=job_progress.set_status
     )
 
     # make a recognizable filename
@@ -74,7 +74,7 @@ def text2voice(
 
 @app.task_endpoint("/text2voice_with_embedding")
 def text2voice_with_embedding(
-        job: JobProgress,
+        job_progress: JobProgress,
         text: str,
         voice: MediaFile,
         semantic_temp: float = 0.7,
@@ -83,13 +83,13 @@ def text2voice_with_embedding(
         coarse_temp: float = 0.7,
         coarse_top_k: int = 50,
         coarse_top_p: float = 0.95,
-        fine_temp: float = 0.5) -> AudioFile:
+        fine_temp: float = 0.5):
 
     voice_name = getattr(voice, "file_name", "embedding")
     voice_name = f"{voice_name}_{uuid.uuid4()}"
 
     ve = VoiceEmbedding.load(voice.to_bytes_io(), speaker_name=voice_name)
-    job.set_status(progress=0.01, message="Started text2voice.")
+    job_progress.set_status(progress=0.01, message="Started text2voice.")
 
     generated_audio_file, sample_rate = t2v.text2voice(
         text=text,
@@ -101,7 +101,7 @@ def text2voice_with_embedding(
         coarse_top_k=coarse_top_k,
         coarse_top_p=coarse_top_p,
         fine_temp=fine_temp,
-        progress_update_func=job.set_status
+        progress_update_func=job_progress.set_status
     )
 
     # make a recognizable filename
@@ -113,7 +113,7 @@ def text2voice_with_embedding(
 
 @app.task_endpoint("/voice2embedding")
 def voice2embedding(
-        job: JobProgress,
+        job_progress: JobProgress,
         audio_file: AudioFile,
         voice_name: str = "new_speaker",
         save: bool = ALLOW_EMBEDDING_SAVE_ON_SERVER
@@ -127,12 +127,12 @@ def voice2embedding(
     """
     # create embedding vector
     bytesio = audio_file.to_bytes_io()
-    job.set_status(progress=0.1, message=f"Started embedding creation {voice_name}.")
+    job_progress.set_status(progress=0.1, message=f"Started embedding creation {voice_name}.")
     embedding = t2v.voice2embedding(audio_file=bytesio, voice_name=voice_name)
 
     # write voice embedding to file
     if save and ALLOW_EMBEDDING_SAVE_ON_SERVER:
-        job.set_status(progress=0.99, message=f"Saving embedding {voice_name} to library.")
+        job_progress.set_status(progress=0.99, message=f"Saving embedding {voice_name} to library.")
         embedding.save_to_speaker_lib()
 
     mf = MediaFile(file_name=f"{voice_name}.npz").from_bytesio(embedding.to_bytes_io(), copy=False)
@@ -141,7 +141,7 @@ def voice2embedding(
 
 @app.task_endpoint("/voice2voice")
 def voice2voice(
-        job: JobProgress,
+        job_progress: JobProgress,
         audio_file: AudioFile,
         voice_name: str,
         temp: float = 0.7
@@ -152,14 +152,14 @@ def voice2voice(
     :param temp: generation temperature (1.0 more diverse, 0.0 more conservative)
     :return: the converted audio file as bytes
     """
-    job.set_status(progress=0.01, message=f"Started voice2voice {voice_name}.")
+    job_progress.set_status(progress=0.01, message=f"Started voice2voice {voice_name}.")
 
     # inference
     audio_array, sample_rate = t2v.voice2voice(
         audio_file.to_bytes_io(), voice_name,
-        temp=temp, progress_update_func=job.set_status)
+        temp=temp, progress_update_func=job_progress.set_status)
 
-    job.set_status(progress=0.99, message=f"Converting to audio_file {voice_name}.")
+    job_progress.set_status(progress=0.99, message=f"Converting to audio_file {voice_name}.")
 
     # convert to file
     af = AudioFile(file_name=f"voice2voice_{voice_name}.wav").from_np_array(

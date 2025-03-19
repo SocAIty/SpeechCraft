@@ -7,7 +7,7 @@
 
 
 Ever wanted to create natural sounding speech from text, clone a voice or sound like someone else? 
-SpeechCraft is ideal for creating voiceovers, audiobooks, or just having fun.
+SpeechCraft is ideal for creating voice-overs, audiobooks, or just having fun.
 
 # Features:
 - Text2speech synthesis with the 🐶 Bark model of [Suno.ai](https://github.com/suno-ai)
@@ -43,11 +43,12 @@ https://github.com/SocAIty/SpeechCraft/assets/7961324/71a039c7-e665-4576-91c7-72
 ### Use the Socaity SDK
 
 Speechcraft is available on [socaity.ai](https://socaity.ai) as part of the [socaity sdk](https://github.com/SocAIty/socaity)
-Spare yourself the installation and use the sdk directly. NO GPU required.
+Spare yourself the installation and use the sdk directly. **NO GPU required**.
 
 ```python 
 from socaity import SpeechCraft
 audio = SpeechCraft().text2voice("I love society [laughs]! [happy] What a day to make voice overs with artificial intelligence.").get_result()
+audio.save("i_love_socaity.wav")
 ```
 
 
