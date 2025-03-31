@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../fast-task-api"
+		},
+		{
+			"path": "../media-toolkit"
+		}
+	],
+	"settings": {}
+}

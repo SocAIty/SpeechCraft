@@ -7,6 +7,7 @@ from speechcraft.core.voice_embedding import VoiceEmbedding
 from speechcraft.supp.model_downloader import get_hubert_manager_and_model
 from speechcraft.supp.utils import get_cpu_or_gpu
 
+
 def voice2embedding(audio_file: BytesIO | str, voice_name: str = "new_speaker"):
     """
     Clones (creates and embedding of) the voice from the audio file and saves it to a .npz file.
@@ -42,4 +43,3 @@ def voice2embedding(audio_file: BytesIO | str, voice_name: str = "new_speaker"):
     semantic_tokens = semantic_tokens.cpu().numpy()
 
     return VoiceEmbedding(codes=codes, semantic_tokens=semantic_tokens, name=voice_name)
-

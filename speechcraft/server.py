@@ -1,4 +1,7 @@
 import uuid
+from typing import Union
+
+from fastapi import HTTPException
 
 from speechcraft import VoiceEmbedding
 
@@ -7,8 +10,10 @@ from speechcraft.settings import ALLOW_EMBEDDING_SAVE_ON_SERVER
 try:
     from fast_task_api import FastTaskAPI, JobProgress, AudioFile, MediaFile
 except ImportError:
-    raise ImportError("Please install the full version of speechcraft with pip install speechcraft[full]"
-                      " to use the server functionality.")
+    raise ImportError(
+        "Please install the full version of speechcraft with pip install speechcraft[full]"
+        " to use the server functionality."
+    )
 
 import speechcraft as t2v
 from speechcraft.supp.model_downloader import download_all_models_init
@@ -20,36 +25,49 @@ app = FastTaskAPI(
     title="SpeechCraft by SocAIty.",
     summary="Create audio from text, clone voices and use them. Convert voice2voice. "
             "Generative text-to-audio Bark model.",
-    version="0.0.9",
+    version="0.0.13",
     contact={
         "name": "SocAIty",
         "url": "https://github.com/SocAIty/speechcraft",
     }
 )
 
+
 @app.task_endpoint(path="/text2voice")
 def text2voice(
         job_progress: JobProgress,
         text: str,
-        voice: str = "en_speaker_3",
+        voice: Union[str, MediaFile] = "en_speaker_3",
         semantic_temp: float = 0.7,
         semantic_top_k: int = 50,
-        semantic_top_p: float =0.95,
+        semantic_top_p: float = 0.95,
         coarse_temp: float = 0.7,
         coarse_top_k: int = 50,
-        coarse_top_p: float =0.95,
+        coarse_top_p: float = 0.95,
         fine_temp: float = 0.5
-    ):
+):
     """
     :param text: the text to be converted
     :param voice: the name of the voice to be used. Uses the pretrained voices which are stored in models/speakers folder.
         It is also possible to provide a full path.
     :return: the audio file as bytes
     """
+    # If voice is a MediaFile, it is gonna be voice cloning mode.
+    if isinstance(voice, MediaFile):
+        voice_name = getattr(voice, "file_name", "embedding")
+        voice_name = f"{voice_name}_{uuid.uuid4()}"
+        voice = VoiceEmbedding.load(voice.to_bytes_io(), speaker_name=voice_name)
+    else:
+        try:
+            voice = VoiceEmbedding.load(voice)
+            voice_name = voice.name
+        except Exception:
+            raise HTTPException(status_code=400, detail=f"Invalid voice: {voice}")
 
     # validate parameters
     # remove any illegal characters from text
-    job_progress.set_status(progress=0.01, message="Started text2voice.")
+    message = "Started text2voice." if isinstance(voice, str) else f"Text2voice using the voice embedding {voice_name}."
+    job_progress.set_status(progress=0.01, message=message)
 
     generated_audio_file, sample_rate = t2v.text2voice(
         text=text,
@@ -67,49 +85,10 @@ def text2voice(
     # make a recognizable filename
     filename = text[:15] if len(text) > 15 else text
     filename = encode_path_safe(filename)
-    filename = f"{filename}_{os.path.basename(voice)}.wav"
+    filename = f"{filename}_{voice_name}.wav"
     af = AudioFile(file_name=filename).from_np_array(np_array=generated_audio_file, sr=sample_rate, file_type="wav")
     return af
 
-
-@app.task_endpoint("/text2voice_with_embedding")
-def text2voice_with_embedding(
-        job_progress: JobProgress,
-        text: str,
-        voice: MediaFile,
-        semantic_temp: float = 0.7,
-        semantic_top_k: int = 50,
-        semantic_top_p: float = 0.95,
-        coarse_temp: float = 0.7,
-        coarse_top_k: int = 50,
-        coarse_top_p: float = 0.95,
-        fine_temp: float = 0.5):
-
-    voice_name = getattr(voice, "file_name", "embedding")
-    voice_name = f"{voice_name}_{uuid.uuid4()}"
-
-    ve = VoiceEmbedding.load(voice.to_bytes_io(), speaker_name=voice_name)
-    job_progress.set_status(progress=0.01, message="Started text2voice.")
-
-    generated_audio_file, sample_rate = t2v.text2voice(
-        text=text,
-        voice=ve,
-        semantic_temp=semantic_temp,
-        semantic_top_k=semantic_top_k,
-        semantic_top_p=semantic_top_p,
-        coarse_temp=coarse_temp,
-        coarse_top_k=coarse_top_k,
-        coarse_top_p=coarse_top_p,
-        fine_temp=fine_temp,
-        progress_update_func=job_progress.set_status
-    )
-
-    # make a recognizable filename
-    filename = text[:15] if len(text) > 15 else text
-    filename = encode_path_safe(filename)
-    filename = f"{filename}_{os.path.basename(voice)}.wav"
-    af = AudioFile(file_name=filename).from_np_array(np_array=generated_audio_file, sr=sample_rate, file_type="wav")
-    return af
 
 @app.task_endpoint("/voice2embedding")
 def voice2embedding(
@@ -143,12 +122,12 @@ def voice2embedding(
 def voice2voice(
         job_progress: JobProgress,
         audio_file: AudioFile,
-        voice_name: str,
+        voice_name: str | MediaFile,
         temp: float = 0.7
 ):
     """
     :param audio_file: the audio file as bytes 5-20s is good length
-    :param voice_name: how the new voice / embedding is named
+    :param voice_name: the new of the voice to convert to; or the voice embedding. String or MediaFile.
     :param temp: generation temperature (1.0 more diverse, 0.0 more conservative)
     :return: the converted audio file as bytes
     """

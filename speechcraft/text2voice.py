@@ -50,7 +50,6 @@ def text2voice_advanced(
             ("fine", 33)
         ])
 
-
     x_semantic = generate_text_semantic(
         text_prompt,
         history_prompt=speaker_name if use_semantic_history_prompt else None,

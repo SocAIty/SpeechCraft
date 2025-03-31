@@ -34,7 +34,9 @@ def create_progress_tracker(original_update_func: callable, steps: list = None):
                   Weights should sum to 100
     :return: Callable progress update function
     """
-    if steps is None:
+    if not steps or not isinstance(steps, list) or not all(
+            isinstance(step, tuple) and len(step) == 2 for step in steps
+    ):
         steps = [("one", 100)]
 
     total_steps = sum(step[1] for step in steps)

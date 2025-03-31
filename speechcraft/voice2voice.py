@@ -12,7 +12,7 @@ from speechcraft.supp.model_downloader import get_hubert_manager_and_model, make
 
 def voice2voice(
         audio_file: BytesIO | str,
-        voice_name: str,
+        voice_name: BytesIO | str,
         temp: float = 0.7,
         max_coarse_history: int = 300,
         progress_update_func: callable = None
@@ -35,7 +35,7 @@ def voice2voice(
     # create a better progress function
     if progress_update_func is not None:
         progress_update_func = utils.create_progress_tracker(progress_update_func, steps=[
-            [("loading", 10), ("embedding", 90)]
+            ("loading", 10), ("embedding", 90)
         ])
 
     # Load and pre-process the audio waveform

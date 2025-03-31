@@ -18,7 +18,7 @@ RUN python -m pip install pip==24.0
 # note that fairseq need to be installed differently in windows and linux
 RUN pip install runpod==1.7.7 && \
     pip install fairseq==0.12.2 && \
-	pip install speechcraft[full] --no-cache
+	pip install speechcraft[full]>=0.0..11 --no-cache
 
 # Configure where the models and the output is stored
 ENV MODELS_DIR="/runpod-volume/speechcraft/models/"
