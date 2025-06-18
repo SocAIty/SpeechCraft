@@ -186,7 +186,7 @@ def _load_model(ckpt_path, device, use_small=False, model_type="text"):
     if not os.path.exists(ckpt_path):
         logger.info(f"{model_type} model not found, downloading into `{MODELS_DIR}`.")
         hf_hub_download(repo_id=model_info["repo_id"], filename=model_info["file_name"], local_dir=MODELS_DIR)
-    checkpoint = torch.load(ckpt_path, map_location=device)
+    checkpoint = torch.load(ckpt_path, map_location=device, weights_only=False)
     # this is a hack
     model_args = checkpoint["model_args"]
     if "input_vocab_size" not in model_args:
