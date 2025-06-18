@@ -18,11 +18,10 @@ except ImportError:
 import speechcraft as t2v
 from speechcraft.supp.model_downloader import download_all_models_init
 
-import os
 from speechcraft.supp.utils import encode_path_safe
 
 app = FastTaskAPI(
-    title="SpeechCraft by SocAIty.",
+    title="SpeechCraft",
     summary="Create audio from text, clone voices and use them. Convert voice2voice. "
             "Generative text-to-audio Bark model.",
     version="0.0.13",
