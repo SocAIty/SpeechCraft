@@ -1,3 +1,4 @@
+from typing import Union
 from io import BytesIO
 
 import torchaudio
@@ -11,8 +12,8 @@ from speechcraft.supp.model_downloader import get_hubert_manager_and_model, make
 
 
 def voice2voice(
-        audio_file: BytesIO | str,
-        voice_name: BytesIO | str,
+        audio_file: Union[BytesIO, str],
+        voice_name: Union[BytesIO, str],
         temp: float = 0.7,
         max_coarse_history: int = 300,
         progress_update_func: callable = None
