@@ -27,9 +27,7 @@ dependencies = [
     "torch",
     "torchaudio",
     "tqdm",
-    "transformers",
-    "omegaconf>=2.0.5,<2.1",
-    "hydra-core>=1.0.7,<1.1"
+    "transformers"
 ]
 
 [project.urls]
@@ -38,7 +36,7 @@ source = "https://github.com/SocAIty/SpeechCraft"
 [project.optional-dependencies]
 full = [
     "fastapi",
-    "fast-task-api>=1.0.9"
+    "fast-task-api>=1.1.2"
 ]
 dev = [
     "fastapi",
