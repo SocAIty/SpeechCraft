@@ -67,10 +67,9 @@ def test_voice2voice(input_dir, output_dir):
     assert os.path.exists(output_path)
 
 
-def test_with_media_file():
-    # Create output directory if running directly
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    audio_file = AudioFile().from_file(f"{INPUT_DIR}/voice_clone_test_voice_1.wav")
+def test_with_media_file(input_dir, output_dir):
+    """Test voice embedding creation using AudioFile object from bytes IO."""
+    audio_file = AudioFile().from_file(f"{input_dir}/voice_clone_test_voice_1.wav")
     embed = voice2embedding(audio_file=audio_file.to_bytes_io(), voice_name="hermine").save_to_speaker_lib()
     assert embed is not None
 
