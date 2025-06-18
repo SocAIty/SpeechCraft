@@ -27,7 +27,8 @@ dependencies = [
     "torch",
     "torchaudio",
     "tqdm",
-    "transformers"
+    "transformers",
+    "omegaconf>=2.0.5,<2.1"
 ]
 
 [project.urls]
