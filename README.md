@@ -70,7 +70,10 @@ To use a GPU don't forget to install [pytorch GPU](https://pytorch.org/get-start
 
 Requirements:
 - python >= 3.5 <= 3.10
+- PyPi == 24.0
 - Windows / Linux
+
+If you have PyPi >= 25.0.0 you will get an install error based on incompatible OmegaConf package syntax.
 
 
 ### Or clone and work with the repository.

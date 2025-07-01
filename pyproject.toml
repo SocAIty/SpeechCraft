@@ -37,11 +37,11 @@ source = "https://github.com/SocAIty/SpeechCraft"
 [project.optional-dependencies]
 full = [
     "fastapi",
-    "fast-task-api>=1.1.5"
+    "fast-task-api>=1.1.7"
 ]
 dev = [
     "fastapi",
-    "fast-task-api>=1.1.5",
+    "fast-task-api>=1.1.7",
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0"
 ]

@@ -24,7 +24,7 @@ app = FastTaskAPI(
     title="SpeechCraft",
     summary="Create audio from text, clone voices and use them. Convert voice2voice. "
             "Generative text-to-audio Bark model.",
-    version="0.0.13",
+    version="0.0.15",
     contact={
         "name": "SocAIty",
         "url": "https://github.com/SocAIty/speechcraft",
@@ -53,13 +53,20 @@ def text2voice(
     """
     # If voice is a MediaFile, it is gonna be voice cloning mode.
     if isinstance(voice, MediaFile):
-        voice_name = getattr(voice, "file_name", "embedding")
-        voice_name = f"{voice_name}_{uuid.uuid4()}"
-        voice = VoiceEmbedding.load(voice.to_bytes_io(), speaker_name=voice_name)
+        try:
+            voice_name = getattr(voice, "file_name", "embedding")
+            voice_name = f"{voice_name}_{uuid.uuid4()}"
+            voice = VoiceEmbedding.load(voice.to_bytes_io(), speaker_name=voice_name)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid voice file. Please provide valid .npz generated with voice2voice")
     else:
         try:
-            voice = VoiceEmbedding.load(voice)
-            voice_name = voice.name
+            if isinstance(voice, str) and len(voice) == 0:
+                print("No voice provided, using default voice")
+                voice = "en_speaker_3"
+
+            loaded_voice = VoiceEmbedding.load(voice)
+            voice_name = loaded_voice.name
         except Exception:
             raise HTTPException(status_code=400, detail=f"Invalid voice: {voice}")
 
@@ -121,7 +128,7 @@ def voice2embedding(
 def voice2voice(
         job_progress: JobProgress,
         audio_file: AudioFile,
-        voice_name: str | MediaFile,
+        voice_name: str | MediaFile = "en_speaker_3",
         temp: float = 0.7
 ):
     """
