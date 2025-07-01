@@ -46,8 +46,8 @@ Speechcraft is available on [socaity.ai](https://socaity.ai) as part of the [soc
 Spare yourself the installation and use the sdk directly. **NO GPU required**.
 
 ```python 
-from socaity import SpeechCraft
-audio = SpeechCraft().text2voice("I love society [laughs]! [happy] What a day to make voice overs with artificial intelligence.").get_result()
+from socaity import speechcraft
+audio = speechcraft().text2voice("I love society [laughs]! [happy] What a day to make voice overs with artificial intelligence.").get_result()
 audio.save("i_love_socaity.wav")
 ```
 
